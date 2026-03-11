@@ -1,0 +1,12 @@
+[package]
+name = "Source_Spray_Manager"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "*"
+egui = "*"
+rvtf = "*"
+vtf = "*"
+vtflib = "*"
+vtflib-sys = "*"
