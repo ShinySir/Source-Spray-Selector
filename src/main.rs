@@ -1,9 +1,9 @@
 use eframe::*;
 use egui::CentralPanel;
 
-struct MyApp {}
+struct SSM {}
 
-impl eframe::App for MyApp {
+impl eframe::App for SSM {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
             ui.label("Hello, world!");
@@ -12,10 +12,10 @@ impl eframe::App for MyApp {
 }
 
 fn main() -> eframe::Result<(), eframe::Error> {
-    run_native("Source Spray Manager",
+    run_native(
+    "Source Spray Manager",
     NativeOptions::default(),
-    app_Creator::Box::new(| cc: &CreationContext<'_>|{
-        Box::new(MyApp {})
+    Box::new(|_cc: &CreationContext<'_>|{
+        Box::new(SSM {})
     }))
 }
-//test
