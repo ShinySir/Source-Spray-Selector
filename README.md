@@ -29,6 +29,18 @@ I have made this because I was tired on how clunky the in game UI for selecting 
 
 ---
 
+## Usage
+
+input a file path to the folder that will contain where the game stores sprays on ususally /materials/vgui/logos
+
+example: C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\materials\vgui\logos
+
+select a vtf file then select spray
+
+you can add favorites via right clicking
+
+---
+
 ## Installation
 
 [Releases](https://github.com/ShinySir/Source-Spray-Selector/releases)
