@@ -23,7 +23,8 @@ I have made this because I was tired on how clunky the in game UI for selecting 
 
 <img width="802" height="632" alt="Source_Spray_Manager_20260312_10-36PM19 142" src="https://github.com/user-attachments/assets/5ef302be-a107-4638-8056-0a124f7da0ee" />
 
-<img width="1342" height="1015" alt="image_2026-03-12_17-06-57" src="https://github.com/user-attachments/assets/339b3467-9294-4208-8fcc-c7f5b1f8750b" />
+<img width="1342" height="1015" alt="image_2026-03-12_17-06-57" src="https://github.com/user-attachments/assets/f49561ad-671d-4c1c-915b-81a52171d66c" />
+
 
 
 ---
