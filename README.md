@@ -1,7 +1,8 @@
 # Source Spray Selector
 
-[![Rust](https://img.shields.io/badge/rust-1.72+-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)  
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-1.72+-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/) 
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 Source Spray Selector is a simple spray selector desktop application written in Rust using [`egui`](https://docs.rs/egui/latest/egui/) for browsing, previewing, and managing `.vtf` spray files used in Source engine games.
 
