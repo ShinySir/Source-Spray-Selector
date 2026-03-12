@@ -182,7 +182,7 @@ fn decode_vtf_preview(file_bytes: &Vec<u8>) -> Result<egui::ColorImage, Box<dyn 
 
 
 //function when the user clicks the set as spray button it will copy the selected vtf file to the same directory with the name "spray.vtf"
-//also create a sprays.vmt file with the correct contents to set the spray as active spray in the game
+//also create a spray.vmt file with the correct contents to set the spray as active spray in the game
 /*
 "UnlitGeneric"
 {
@@ -194,7 +194,7 @@ fn decode_vtf_preview(file_bytes: &Vec<u8>) -> Result<egui::ColorImage, Box<dyn 
 }
 */
 fn set_as_spray(selected_file: &str, directory_path: &str) {
-    //create a sprays.vmt file with the correct contents to set the spray as active spray in the game
+    //create a spray.vmt file with the correct contents to set the spray as active spray in the game
     let vmt_content = format!(
         "\"UnlitGeneric\"\n{{\n\t\"$basetexture\"\t\"vgui/logos/{}\"\n\t\"$translucent\" \"1\"\n\t\"$ignorez\" \"1\"\n\t\"$vertexcolor\" \"1\"\n\t\"$vertexalpha\" \"1\"\n}}",
         selected_file.trim_end_matches(".vtf")
@@ -202,8 +202,6 @@ fn set_as_spray(selected_file: &str, directory_path: &str) {
     fs::write(format!("{}/spray.vmt", directory_path), vmt_content).expect("Unable to write file");
     //copy the selected vtf file to the same directory with the name "spray.vtf"
     fs::copy(format!("{}/{}", directory_path, selected_file), format!("{}/spray.vtf", directory_path)).expect("Unable to copy file");
-    //copy vmt file to the same directory with the name "spray.vmt"
-    fs::copy(format!("{}/spray.vmt", directory_path), format!("{}/spray.vmt", directory_path)).expect("Unable to copy file");
 }
 
 
