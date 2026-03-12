@@ -10,3 +10,10 @@ vtf = "*"
 bcndecode = "*"   
 image = "*"
 serde_json = "*"
+catppuccin-egui = { version = "5.7.0", default-features = false, features = ["egui33"] }
+serde = "*"
+
+
+
+[build-dependencies]
+winres = "0.1.12"

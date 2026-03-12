@@ -1,34 +1,68 @@
+#![windows_subsystem = "windows"]
 use eframe::*;
-use egui::{CentralPanel, ScrollArea};
+use egui::{CentralPanel, ScrollArea, IconData, CursorIcon};
 use std::fs;
 use serde_json;
 use image::{DynamicImage, imageops::FilterType};
+use std::sync::Arc;
+use std::path::{Path, PathBuf};
+use std::collections::HashMap;
+use egui::{FontData, FontDefinitions, FontFamily};
+
+
 
 // this is the main app struct
-struct SSM {
+struct SSS {
     directory_path: String,
-    selected_file: Option<String>, // Track which file is selected
+    selected_file: Option<String>,
     preview_texture: Option<egui::TextureHandle>,
+    show_favorites: bool,
+    truepath: Option<PathBuf>,
+    show_gallery: bool,
+    gallery_textures: HashMap<String, Option<egui::TextureHandle>>,
+}
+
+fn setup_fonts(ctx: &egui::Context) {
+    let mut fonts = FontDefinitions::default();
+
+    fonts.font_data.insert(
+        "lexend".to_owned(),
+        Arc::new(FontData::from_static(include_bytes!("../assets/LexendDeca-Regular.ttf"))),
+    );
+
+    fonts.families.insert(FontFamily::Proportional, vec!["lexend".to_owned()]);
+    fonts.families.insert(FontFamily::Monospace, vec!["lexend".to_owned()]);
+
+    ctx.set_fonts(fonts);
 }
 
 // this is the main app impl and where the main logic will be implemented
-impl eframe::App for SSM {
+impl eframe::App for SSS {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        catppuccin_egui::set_theme(ctx, catppuccin_egui::MOCHA);
         CentralPanel::default().show(ctx, |ui| {
-            ui.label(":3");
 
-            //game path input
+            //ui.label(":3");
+            //create a buttons
+            ui.horizontal(|ui| {
+                if ui.button("Favorites").clicked() {
+                    self.show_favorites = !self.show_favorites;
+                }
 
+                if ui.button("Gallery View").clicked() {
+                    self.show_gallery = !self.show_gallery;
+                }
+            });
 
             //first load the json file for both game path and directory path and set the values to the input fields so that the user doesn't have to input them every time they open the app
             if let Some(saved_directory) = load_directory_path() {
                 self.directory_path = saved_directory; 
-            }
+            }   
 
 
             //this will make input for directory from user
             ui.label("Enter path of the folder where VTF spray files are located:");
-            ui.label("(example: Steam/steamapps/common/Team Fortress 2/tf/materials/vgui/logos):");
+            ui.label("(example: Steam/steamapps/common/Team Fortress 2/tf/materials/vgui/logos)");
 
             // Add input field for directory path
             ui.text_edit_singleline(&mut self.directory_path);
@@ -55,8 +89,14 @@ impl eframe::App for SSM {
                             // Create colored text with RichText
                             let rich_text = egui::RichText::new(&file).color(text_color);
                             
-                            // Show the label and check if clicked
-                            if ui.label(rich_text).clicked() {
+                            // Show the label with selection highlight
+                            let is_selected = self.selected_file.as_ref() == Some(&file);
+                            let response = ui.selectable_label(is_selected, rich_text);
+                            if response.hovered() {
+                                ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
+                            }
+
+                            if response.clicked() {
                                 self.selected_file = Some(file.clone());
 
                                 let full_path = format!("{}/{}", self.directory_path, file);
@@ -73,14 +113,18 @@ impl eframe::App for SSM {
                                     }
                                 }
                             }
+
+                            if response.secondary_clicked() {
+                                favorites_json(&self.directory_path, &file);
+                            }
                         }
                     });
                 
-                // Right column - Preview
+                // Right column
                 if let Some(selected_file) = &self.selected_file {
                     columns[1].label(format!("Selected spray: {}", selected_file));
 
-                    // Call the function to show the spray image here // use show_spray_dxt to show the spray image in the right column // the current vtf selected is from which filename was highlighted in the left column
+                    // Call the function to show the spray image here
                     if let Some(texture) = &self.preview_texture {
                         let sized = egui::load::SizedTexture::from_handle(texture);
                         columns[1].image(egui::ImageSource::Texture(sized));
@@ -92,12 +136,121 @@ impl eframe::App for SSM {
                     
                     //button to set spray as active spray in the game
                     if columns[1].button("Set as spray").clicked() {
-                        //call set as spray
-                        set_as_spray(selected_file, &self.directory_path);
+                        set_as_spray(selected_file, &self.directory_path, &self.truepath);
                     }
                 }
             });
         });
+
+        //the window to show favorites
+        if self.show_favorites {
+            egui::Window::new("Favorites")
+            .open(&mut self.show_favorites)
+            .show(ctx, |ui| {
+                let favorites = get_favorite_sprays();
+                if favorites.is_empty() {
+                    ui.label("Right Click on the file name to add Favorites");
+                } else {
+                    for fav in favorites {
+                        let path = Path::new(&fav);
+                        let file_name = path
+                            .file_name()
+                            .and_then(|s| s.to_str())
+                            .map(|s| s.to_string())
+                            .unwrap_or_else(|| fav.clone());
+
+                        let is_selected = self.selected_file.as_ref() == Some(&file_name);
+                        let resp = ui.selectable_label(is_selected, &file_name);
+                        if resp.clicked() {
+                            self.selected_file = Some(file_name.clone());
+
+                            self.truepath = Some(path.to_path_buf());
+
+                            if let Some(parent) = path.parent().and_then(|p| p.to_str()) {
+                                self.directory_path = parent.to_string();
+                            }
+
+                            if let Ok(file_bytes) = fs::read(&fav) {
+                                if let Ok(color_image) = decode_vtf_preview(&file_bytes) {
+                                    self.preview_texture = Some(
+                                        ctx.load_texture(
+                                            "spray_preview",
+                                            color_image,
+                                            egui::TextureOptions::LINEAR,
+                                        ),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        //the window to show gallery
+        if self.show_gallery {
+            egui::Window::new("Gallery")
+            .resizable(true)
+            .open(&mut self.show_gallery)
+            .show(ctx, |ui| {
+                let vtf_files = get_vtf_files(&self.directory_path);
+                if vtf_files.is_empty() {
+                    ui.label("Loading.. will take a while depending on how many vtf files in folder (or you have none)");
+                    return;
+                }
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    egui::Grid::new("gallery_grid")
+                        .num_columns(4)
+                        .spacing(egui::vec2(12.0, 12.0))
+                        .show(ui, |ui| {
+                            for file in vtf_files {
+                                let full_path = format!("{}/{}", self.directory_path, file);
+
+                                if !self.gallery_textures.contains_key(&full_path) {
+                                    let tex = fs::read(&full_path)
+                                        .ok()
+                                        .and_then(|bytes| decode_vtf_preview(&bytes).ok())
+                                        .map(|img| {
+                                            ctx.load_texture(
+                                                full_path.clone(),
+                                                img,
+                                                egui::TextureOptions::LINEAR,
+                                            )
+                                        });
+                                    self.gallery_textures.insert(full_path.clone(), tex);
+                                }
+
+                                let clicked = if let Some(Some(tex)) = self.gallery_textures.get(&full_path) {
+                                    let sized = egui::load::SizedTexture::from_handle(tex);
+                                    let image = egui::Image::new(egui::ImageSource::Texture(sized))
+                                        .fit_to_exact_size(egui::Vec2::splat(96.0));
+                                    let resp = ui.add(image);
+                                    ui.label(&file);
+                                    resp.clicked()
+                                } else {
+                                    ui.label("Loading...");
+                                    ui.label(&file);
+                                    false
+                                };
+
+                                if clicked {
+                                    self.selected_file = Some(file.clone());
+                                    self.preview_texture = self
+                                        .gallery_textures
+                                        .get(&full_path)
+                                        .and_then(|t| t.clone());
+                                }
+
+                                ui.end_row();
+                            }
+                        });
+                });
+            });
+        }
+
+
+
     }
 }
 
@@ -107,24 +260,20 @@ impl eframe::App for SSM {
     {
         "sprays_path": "C:/path/to/directory"
     }
-
-file name: paths.json
-
 */
-//save also game path
 fn save_directory_path(directory_path: &str) {
     let directory = serde_json::json!({
         "sprays_path": directory_path,
     });
     let json_data = serde_json::to_string(&directory).unwrap();
-    fs::write("paths.json", json_data).expect("Unable to write file");
+    fs::write("gamepath.json", json_data).expect("Unable to write json");
 }
 
 
 
 //this function will load the json file
 fn load_directory_path() -> Option<String> {
-    if let Ok(json_data) = fs::read_to_string("paths.json") {
+    if let Ok(json_data) = fs::read_to_string("gamepath.json") {
         if let Ok(directory) = serde_json::from_str::<serde_json::Value>(&json_data) {
             if let Some(sprays_path) = directory.get("sprays_path") {
                 if let Some(sprays_path_str) = sprays_path.as_str() {
@@ -138,8 +287,6 @@ fn load_directory_path() -> Option<String> {
 
 
 //this function will get the directory path inputted by the user and will find all .vtf files in that directory and subdirectories and will display them in a list
-//dont use unwrap i dont want to crash the app if the user inputs an invalid directory path
-//make the code very simple just list all the .vtf files in the directory not recursively and display them in a list
 fn get_vtf_files(directory_path: &str) -> Vec<String> {
     let mut vtf_files = Vec::new();
     if let Ok(entries) = fs::read_dir(directory_path) {
@@ -168,7 +315,7 @@ fn get_vtf_files(directory_path: &str) -> Vec<String> {
 fn decode_vtf_preview(file_bytes: &Vec<u8>) -> Result<egui::ColorImage, Box<dyn std::error::Error>> {
     let vtf = vtf::from_bytes(file_bytes)?;
     let image: DynamicImage = vtf.highres_image.decode(0)?;
-    let resized = image.resize_exact(320, 320, FilterType::Triangle);
+    let resized = image.resize_exact(360, 360, FilterType::Triangle);
     let rgba = resized.to_rgba8();
     let (width, height) = rgba.dimensions();
     let color_image = egui::ColorImage::from_rgba_unmultiplied(
@@ -193,7 +340,7 @@ fn decode_vtf_preview(file_bytes: &Vec<u8>) -> Result<egui::ColorImage, Box<dyn 
 	"$vertexalpha" "1"
 }
 */
-fn set_as_spray(selected_file: &str, directory_path: &str) {
+fn set_as_spray(selected_file: &str, directory_path: &str, truepath: &Option<std::path::PathBuf>) {
     //create a spray.vmt file with the correct contents to set the spray as active spray in the game
     let vmt_content = format!(
         "\"UnlitGeneric\"\n{{\n\t\"$basetexture\"\t\"vgui/logos/{}\"\n\t\"$translucent\" \"1\"\n\t\"$ignorez\" \"1\"\n\t\"$vertexcolor\" \"1\"\n\t\"$vertexalpha\" \"1\"\n}}",
@@ -201,22 +348,104 @@ fn set_as_spray(selected_file: &str, directory_path: &str) {
     );
     fs::write(format!("{}/spray.vmt", directory_path), vmt_content).expect("Unable to write file");
     //copy the selected vtf file to the same directory with the name "spray.vtf"
+    let check = format!("{}/{}", directory_path, selected_file);
+    if Path::new(&check).exists() {
     fs::copy(format!("{}/{}", directory_path, selected_file), format!("{}/spray.vtf", directory_path)).expect("Unable to copy file");
+    } else {
+    println!("not in filepath, assuming it's from favorites");
+        if let Some(tp) = truepath {
+            println!("DEBUG: copying from {:?}", tp);
+            fs::copy(tp, format!("{}/spray.vtf", directory_path)).expect("Unable to copy file");
+        }
+    }
+}
+
+
+
+//function to implement favorites
+//when the user right clicks on a spray in the list it will add it to the favorites list and save it in a json file
+fn favorites_json(directory_path: &str, selected_file: &str) {
+    let full_path = format!("{}/{}", directory_path, selected_file);
+
+    let mut root: serde_json::Value = if let Ok(json_data) = fs::read_to_string("favs.json") {
+        serde_json::from_str(&json_data).unwrap_or_else(|_| serde_json::json!({}))
+    } else {
+        serde_json::json!({})
+    };
+
+    let mut favorites = root
+        .get("favorites")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+
+    if !favorites.contains(&full_path) {
+        favorites.push(full_path);
+    }
+
+    root["favorites"] = serde_json::Value::Array(
+        favorites.into_iter().map(serde_json::Value::String).collect(),
+    );
+
+    let json_data = serde_json::to_string(&root).unwrap();
+    fs::write("favs.json", json_data).expect("Unable to write json");
+}
+
+
+//this function is similar to get_vtf_files but it will get the favorite sprays from the json file and display them in a separate list
+fn get_favorite_sprays() -> Vec<String> {
+    if let Ok(json_data) = fs::read_to_string("favs.json") {
+        if let Ok(root) = serde_json::from_str::<serde_json::Value>(&json_data) {
+            if let Some(favorites) = root.get("favorites").and_then(|v| v.as_array()) {
+                return favorites
+                    .iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect();
+            }
+        }
+    }
+    Vec::new()
 }
 
 
 
 
-//this is the main function where the app is launched
+
+
+//this is the main function
 fn main() -> eframe::Result<(), eframe::Error> {
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_icon(Arc::new(load_icon())),
+        ..Default::default()
+    };
+
     run_native(
-    "Source Spray Selector",
-    NativeOptions::default(),
-    Box::new(|_cc: &CreationContext<'_>|{
-        Ok(Box::new(SSM {
-            directory_path: String::new(),
-            selected_file: None,
-            preview_texture: None,
-        }))
-    }))
+        "Source Spray Selector :3",
+        options,
+        Box::new(|cc| {
+            setup_fonts(&cc.egui_ctx);
+            Ok(Box::new(SSS {
+                directory_path: String::new(),
+                selected_file: None,
+                preview_texture: None,
+                show_favorites: false,
+                truepath: None,
+                show_gallery: false,
+                gallery_textures: HashMap::new(),
+            }))
+        }),
+    )
+}
+
+
+fn load_icon() -> IconData {
+    // Example: Load and convert a PNG file to IconData
+    let png_bytes = include_bytes!("../assets/icon.png").as_slice();
+    eframe::icon_data::from_png_bytes(png_bytes)
+        .expect("Failed to convert to IconData")
 }
