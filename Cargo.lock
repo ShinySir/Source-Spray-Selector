@@ -4,14 +4,13 @@ version = 4
 
 [[package]]
 name = "Source_Spray_Selector"
-version = "0.1.0"
+version = "1.0.1"
 dependencies = [
  "bcndecode",
  "catppuccin-egui",
  "eframe",
  "egui",
  "image",
- "serde",
  "serde_json",
  "vtf",
  "winres",

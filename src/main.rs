@@ -20,6 +20,7 @@ struct SSS {
     truepath: Option<PathBuf>,
     show_gallery: bool,
     gallery_textures: HashMap<String, Option<egui::TextureHandle>>,
+    show_about: bool,
 }
 
 fn setup_fonts(ctx: &egui::Context) {
@@ -51,6 +52,10 @@ impl eframe::App for SSS {
 
                 if ui.button("Gallery View").clicked() {
                     self.show_gallery = !self.show_gallery;
+                }
+
+                if ui.button("About").clicked() {
+                    self.show_about = !self.show_about;
                 }
             });
 
@@ -249,7 +254,21 @@ impl eframe::App for SSS {
             });
         }
 
-
+        if self.show_about{
+            egui::Window::new("About")
+            .resizable(false)
+            .open(&mut self.show_about)
+            .show(ctx, |ui| {
+                ui.label(egui::RichText::new("Source Spray Selector").heading());
+                ui.label("Version 1.0.1");
+                ui.horizontal(|ui| {
+                    ui.hyperlink_to("Github", "https://github.com/ShinySir/Source-Spray-Selector");
+                    ui.hyperlink_to("Check for Updates", "https://github.com/ShinySir/Source-Spray-Selector/releases");
+                    ui.hyperlink_to("license", "https://github.com/ShinySir/Source-Spray-Selector/blob/master/LICENSE");
+                });
+            });
+            
+        }
 
     }
 }
@@ -437,6 +456,7 @@ fn main() -> eframe::Result<(), eframe::Error> {
                 truepath: None,
                 show_gallery: false,
                 gallery_textures: HashMap::new(),
+                show_about: false,
             }))
         }),
     )

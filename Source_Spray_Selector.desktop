@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0.1
+Name=Source Spray Selector
+Exec=PUBLISH/Source_Spray_Selector-linux-amd64-gnu
+Icon=assets/icon.png
+Type=Application
+Terminal=false
