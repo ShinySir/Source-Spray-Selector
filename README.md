@@ -22,17 +22,17 @@ I have made this because I was tired on how clunky the in game UI for selecting 
 
 windows:
 
-<img width="240" height=auto alt="Source_Spray_Manager_20260312_10-36PM25 765" src="https://github.com/ShinySir/Source-Spray-Selector/blob/master/assets/a1.png" />
+<img width="420" height=auto alt="Source_Spray_Manager_20260312_10-36PM25 765" src="https://github.com/ShinySir/Source-Spray-Selector/blob/master/assets/a1.png" />
 
-<img width="240" height=auto alt="Source_Spray_Manager_20260312_10-36PM19 142" src="https://github.com/ShinySir/Source-Spray-Selector/blob/master/assets/a2.png" />
+<img width="420" height=auto alt="Source_Spray_Manager_20260312_10-36PM19 142" src="https://github.com/ShinySir/Source-Spray-Selector/blob/master/assets/a2.png" />
 
-<img width="240" height=auto alt="Source_Spray_Manager_20260312_10-36PM19 142" src="https://github.com/ShinySir/Source-Spray-Selector/blob/master/assets/a3.png" />
+<img width="420" height=auto alt="Source_Spray_Manager_20260312_10-36PM19 142" src="https://github.com/ShinySir/Source-Spray-Selector/blob/master/assets/a3.png" />
 
 linux wayland and x11 (old version):
 
-<img width="400" height=auto alt="image_2026-03-12_17-06-57" src="https://github.com/user-attachments/assets/f49561ad-671d-4c1c-915b-81a52171d66c" />
+<img width="420" height=auto alt="image_2026-03-12_17-06-57" src="https://github.com/user-attachments/assets/f49561ad-671d-4c1c-915b-81a52171d66c" />
 
-<img width="400" height=auto alt="image_2026-03-13_01-41-27" src="https://github.com/user-attachments/assets/cdd3dc9f-dc18-4b5e-b5d9-6437e8120db2" />
+<img width="420" height=auto alt="image_2026-03-13_01-41-27" src="https://github.com/user-attachments/assets/cdd3dc9f-dc18-4b5e-b5d9-6437e8120db2" />
 
 
 ---
