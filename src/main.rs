@@ -567,8 +567,8 @@ fn main() -> eframe::Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
         
         viewport: egui::ViewportBuilder::default()
-            .with_icon(Arc::new(load_icon()))
-            .with_app_id("Source_Spray_Selector"),
+            .with_icon(Arc::new(load_icon())),
+//            .with_app_id("Source_Spray_Selector"),
             
         ..Default::default()
     };
