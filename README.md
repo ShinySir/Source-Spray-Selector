@@ -25,11 +25,11 @@ windows:
 
 <img width="802" height="632" alt="Source_Spray_Manager_20260312_10-36PM19 142" src="https://github.com/user-attachments/assets/5ef302be-a107-4638-8056-0a124f7da0ee" />
 
-wayland:
+wayland: (old version)
 
 <img width="1342" height="1015" alt="image_2026-03-12_17-06-57" src="https://github.com/user-attachments/assets/f49561ad-671d-4c1c-915b-81a52171d66c" />
 
-x11:
+x11: (old version)
 
 <img width="914" height="749" alt="image_2026-03-13_01-41-27" src="https://github.com/user-attachments/assets/cdd3dc9f-dc18-4b5e-b5d9-6437e8120db2" />
 
