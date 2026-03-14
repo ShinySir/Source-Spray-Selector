@@ -53,7 +53,7 @@ you can add favorites via right clicking
 
 [Releases](https://github.com/ShinySir/Source-Spray-Selector/releases)
 
-download either the linux binary or windows msvc exe file depending which system you use
+download either the linux binary or windows exe file depending which system you use
 
 Mac is completly untested as I dont own any Mac devices
 
