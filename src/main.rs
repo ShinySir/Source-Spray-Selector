@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 use egui::{FontData, FontDefinitions, FontFamily};
-
+use serde::{Serialize, Deserialize};
 
 
 // this is the main app struct
@@ -21,6 +21,10 @@ struct SSS {
     show_gallery: bool,
     gallery_textures: HashMap<String, Option<egui::TextureHandle>>,
     show_about: bool,
+    show_profiles: bool,
+    profiles: Vec<Gamepaths>,
+    new_profile_game: Option<String>,
+    new_profile_path: Option<String>,
 }
 
 fn setup_fonts(ctx: &egui::Context) {
@@ -46,6 +50,9 @@ impl eframe::App for SSS {
             //ui.label(":3");
             //create a buttons
             ui.horizontal(|ui| {
+                if ui.button("Profiles").clicked() {
+                    self.show_profiles = !self.show_profiles;
+                }
                 if ui.button("Favorites").clicked() {
                     self.show_favorites = !self.show_favorites;
                 }
@@ -60,21 +67,24 @@ impl eframe::App for SSS {
             });
 
             //first load the json file for both game path and directory path and set the values to the input fields so that the user doesn't have to input them every time they open the app
-            if let Some(saved_directory) = load_directory_path() {
-                self.directory_path = saved_directory; 
-            }   
+       //     if let Some(saved_directory) = load_directory_path() {
+         //       self.directory_path = saved_directory; 
+       //     }   
 
 
             //this will make input for directory from user
             ui.label("Enter path of the folder where VTF spray files are located:");
             ui.label("(example: Steam/steamapps/common/Team Fortress 2/tf/materials/vgui/logos)");
 
-            // Add input field for directory path
-            ui.text_edit_singleline(&mut self.directory_path);
+            // Add input field for directory path // Save the directory path to a json file
+            if ui.text_edit_singleline(&mut self.directory_path).changed() {
+                save_directory_path(&self.directory_path);
+            }
+            
             //call function to display vtf files in the directory
             let vtf_files = get_vtf_files(&self.directory_path);
-            // Save the directory path to a json file
-            save_directory_path(&self.directory_path);
+            
+
             ui.label("Sprays:");
             
             // Create two columns - file list on left, preview on right
@@ -171,9 +181,9 @@ impl eframe::App for SSS {
 
                             self.truepath = Some(path.to_path_buf());
 
-                            if let Some(parent) = path.parent().and_then(|p| p.to_str()) {
-                                self.directory_path = parent.to_string();
-                            }
+                //            if let Some(parent) = path.parent().and_then(|p| p.to_str()) {
+                   //             self.directory_path = parent.to_string();
+                  //          } 
 
                             if let Ok(file_bytes) = fs::read(&fav) {
                                 if let Ok(color_image) = decode_vtf_preview(&file_bytes) {
@@ -260,7 +270,7 @@ impl eframe::App for SSS {
             .open(&mut self.show_about)
             .show(ctx, |ui| {
                 ui.label(egui::RichText::new("Source Spray Selector").heading());
-                ui.label("Version 1.0.1");
+                ui.label("Version 1.1.0");
                 ui.horizontal(|ui| {
                     ui.hyperlink_to("Github", "https://github.com/ShinySir/Source-Spray-Selector");
                     ui.hyperlink_to("Check for Updates", "https://github.com/ShinySir/Source-Spray-Selector/releases");
@@ -270,8 +280,63 @@ impl eframe::App for SSS {
             
         }
 
+        if self.show_profiles {
+            egui::Window::new("Game Profiles")
+                .resizable(false)
+                .open(&mut self.show_profiles)
+                .show(ctx, |ui| {
+                    ui.label("Profiles");
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                    // Show existing profiles
+                    for profile in self.profiles.iter().filter(|p| p.gamename != "default") {
+                        ui.horizontal(|ui| {
+                            if ui.button(&profile.gamename).clicked() {
+                                // Load this profile into directory_path
+                                load_profile(&profile.gamename, &mut self.directory_path);
+                            }
+                            ui.label("->");
+                            ui.label(&profile.sprays_path);
+                        });
+                    }
+
+                    ui.separator();
+
+                    // Button to add a new profile
+                    if ui.button("+ Add Profile").clicked() {
+                        self.new_profile_game = Some(String::new());
+                        self.new_profile_path = Some(String::new());
+                    }
+
+                    // If the new profile input fields are active
+                    if self.new_profile_game.is_some() && self.new_profile_path.is_some() {
+                        // take() temporarily moves the value out of the Option
+                        let mut game_input = self.new_profile_game.take().unwrap();
+                        let mut path_input = self.new_profile_path.take().unwrap();
+
+                        ui.horizontal(|ui| {
+                            ui.label("Game:");
+                            ui.text_edit_singleline(&mut game_input);
+
+                            ui.label("Path:");
+                            ui.text_edit_singleline(&mut path_input);
+
+                            if ui.button("Save").clicked() {
+                                add_profile(&game_input, &path_input);
+                                self.profiles = load_profiles();
+                            }
+                        });
+
+                        // Put back the inputs if not saved
+                        self.new_profile_game = Some(game_input);
+                        self.new_profile_path = Some(path_input);
+                    }
+                });
+            });
+        }
+
     }
 }
+
 
 //this function saves the directory path in a json file so that the user doesn't have to input it every time they open the app
 //the json contents mock up:
@@ -287,8 +352,6 @@ fn save_directory_path(directory_path: &str) {
     let json_data = serde_json::to_string(&directory).unwrap();
     fs::write("gamepath.json", json_data).expect("Unable to write json");
 }
-
-
 
 //this function will load the json file
 fn load_directory_path() -> Option<String> {
@@ -410,7 +473,7 @@ fn favorites_json(directory_path: &str, selected_file: &str) {
         favorites.into_iter().map(serde_json::Value::String).collect(),
     );
 
-    let json_data = serde_json::to_string(&root).unwrap();
+    let json_data = serde_json::to_string_pretty(&root).unwrap();
     fs::write("favs.json", json_data).expect("Unable to write json");
 }
 
@@ -431,17 +494,86 @@ fn get_favorite_sprays() -> Vec<String> {
 }
 
 
+//fucntions to implement game profiles
+#[derive(Debug, Deserialize, Serialize)]
+struct Gamepaths {
+    gamename: String,
+    sprays_path: String,
+}
 
 
+// function to load the game profiles
+fn load_profiles() -> Vec<Gamepaths> {
+    if let Ok(json_data) = fs::read_to_string("profiles.json") {
+        if let Ok(mut profiles) = serde_json::from_str::<Vec<Gamepaths>>(&json_data) {
+            if !profiles.iter().any(|p| p.gamename == "default") {
+                profiles.insert(0, Gamepaths {
+                    gamename: "default".to_string(),
+                    sprays_path: String::new(),
+                });
+            }
+            return profiles;
+        }
+    }
+
+    // If file missing or invalid, return default profile
+    vec![Gamepaths { gamename: "default".to_string(), sprays_path: String::new() }]
+}
+
+fn save_profiles(profiles: &Vec<Gamepaths>) {
+    let json_data = serde_json::to_string_pretty(profiles).unwrap();
+    fs::write("profiles.json", json_data).expect("Unable to write profiles.json");
+}
+
+// Add a new profile
+fn add_profile(gamename: &str, sprays_path: &str) {
+    let mut profiles = load_profiles();
+
+    // Check if profile exists
+    if let Some(existing) = profiles.iter_mut().find(|p| p.gamename == gamename) {
+        // overwrite the path
+        existing.sprays_path = sprays_path.to_string();
+    } else {
+        // add new profile
+        profiles.push(Gamepaths {
+            gamename: gamename.to_string(),
+            sprays_path: sprays_path.to_string(),
+        });
+    }
+
+    // save updated profiles
+    save_profiles(&profiles);
+}
+
+//function to load the game profile to the directory path
+fn load_profile(gamename: &str, directory_path: &mut String) {
+    let profiles = load_profiles();
+
+    if let Some(profile) = profiles.iter().find(|p| p.gamename == gamename) {
+        *directory_path = profile.sprays_path.clone();
+    } else {
+        // fallback to default
+        if let Some(default) = profiles.iter().find(|p| p.gamename == "default") {
+            *directory_path = default.sprays_path.clone();
+        } else {
+            *directory_path = String::new();
+        }
+    }
+}
 
 
 //this is the main function
 fn main() -> eframe::Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
+        
         viewport: egui::ViewportBuilder::default()
-            .with_icon(Arc::new(load_icon())),
+            .with_icon(Arc::new(load_icon()))
+            .with_app_id("Source_Spray_Selector"),
+            
         ..Default::default()
     };
+
+    let directory_path = load_directory_path().unwrap_or_default();
 
     run_native(
         "Source Spray Selector :3",
@@ -449,7 +581,7 @@ fn main() -> eframe::Result<(), eframe::Error> {
         Box::new(|cc| {
             setup_fonts(&cc.egui_ctx);
             Ok(Box::new(SSS {
-                directory_path: String::new(),
+                directory_path,
                 selected_file: None,
                 preview_texture: None,
                 show_favorites: false,
@@ -457,6 +589,10 @@ fn main() -> eframe::Result<(), eframe::Error> {
                 show_gallery: false,
                 gallery_textures: HashMap::new(),
                 show_about: false,
+                show_profiles: false,
+                profiles: load_profiles(),
+                new_profile_game: None,
+                new_profile_path: None,
             }))
         }),
     )
