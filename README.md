@@ -3,9 +3,6 @@ Spray Manager for Linux, Windows and MacOS
 
 [![Rust](https://img.shields.io/badge/rust-1.94-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![GitHub](https://img.shields.io/badge/GitHub-Releases-black?logo=github&logoColor=white)](https://github.com/ShinySir/Source-Spray-Selector/releases/latest)
 
-  <a href="https://github.com/ShinySir/Source-Spray-Selector/releases/latest">
-    <img alt="GitHub release" src="https://img.shields.io/github/v/release/ShinySir/Source-Spray-Selector?include_prereleases&style=for-the-badge"></a>
-
 Source Spray Selector is a simple spray selector desktop application GUI written in Rust using [`egui`](https://www.egui.rs/) for browsing, previewing, and managing `.vtf` spray files used in Source engine games.
 
 I have made this because I was tired on how clunky the in game UI for selecting of sprays, when you have alot of sprays it gets very tedious to choose, like the file names gets cut off if its long enough
