@@ -1,4 +1,5 @@
 # Source Spray Selector <img width="48" height=auto alt="img1" src="https://raw.githubusercontent.com/ShinySir/Source-Spray-Selector/refs/heads/master/assets/icon.png" />
+Spray Manager for Linux, Windows and MacOS
 
 [![Rust](https://img.shields.io/badge/rust-1.94-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/) 
 
