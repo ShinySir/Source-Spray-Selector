@@ -45,7 +45,7 @@ example: `C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\mater
 
 select a vtf file then select spray
 
-**For Left 4 Dead 1 & Left 4 Dead 2**: you have to put this path instead `Left 4 Dead 2\left4dead2\materials\vgui\logos\custom` then after picking a spray run cl_logofile materials/vgui/logos/custom/spray.vtf on console (you only have to run it once)
+**For Left 4 Dead 1 & Left 4 Dead 2**: you have to put this path instead `Left 4 Dead 2\left4dead2\materials\vgui\logos\custom` then after picking a spray run `cl_logofile materials/vgui/logos/custom/spray.vtf` on console (you only have to run it once)
 
 ---
 
