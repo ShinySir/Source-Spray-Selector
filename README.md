@@ -41,13 +41,11 @@ linux wayland and x11 (old version):
 
 input a file path to the folder that will contain where the game stores sprays on ususally /materials/vgui/logos
 
-example: C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\materials\vgui\logos
+example: `C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2\tf\materials\vgui\logos`
 
 select a vtf file then select spray
 
-you can add favorites via right clicking
-
-**For Left 4 Dead 1 & Left 4 Dead 2**: you have to put this path instead Left 4 Dead 2\left4dead2\materials\vgui\logos\custom then after picking a spray run cl_logofile materials/vgui/logos/custom/spray.vtf on console (you only have to run it once)
+**For Left 4 Dead 1 & Left 4 Dead 2**: you have to put this path instead `Left 4 Dead 2\left4dead2\materials\vgui\logos\custom` then after picking a spray run cl_logofile materials/vgui/logos/custom/spray.vtf on console (you only have to run it once)
 
 ---
 
